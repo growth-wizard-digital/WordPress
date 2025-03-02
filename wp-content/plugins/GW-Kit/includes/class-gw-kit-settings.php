@@ -329,18 +329,24 @@ class GW_Kit_Settings {
     }
 
     /**
-     * Sanitize GTM code
+     * Sanitize GTM environments
      *
-     * @param string $input The input to sanitize
-     * @return string
+     * @param array $input The environments array to sanitize
+     * @return array
      */
-    public static function sanitize_gtm_code($input) {
-        if (empty($input)) {
-            return '';
+    public static function sanitize_gtm_environments($input) {
+        if (!is_array($input)) {
+            return array(
+                array(
+                    'id' => 'production',
+                    'name' => 'Production',
+                    'head_code' => '',
+                    'body_code' => ''
+                )
+            );
         }
 
-        // Basic XSS protection while allowing script tags
-        $input = wp_kses($input, array(
+        $allowed_html = array(
             'script' => array(
                 'async' => array(),
                 'src' => array()
@@ -352,8 +358,30 @@ class GW_Kit_Settings {
                 'width' => array(),
                 'style' => array()
             )
-        ));
+        );
 
-        return $input;
+        $sanitized = array();
+        foreach ($input as $env) {
+            if (!isset($env['id']) || !isset($env['name'])) continue;
+
+            $sanitized[] = array(
+                'id' => sanitize_key($env['id']),
+                'name' => sanitize_text_field($env['name']),
+                'head_code' => wp_kses(isset($env['head_code']) ? $env['head_code'] : '', $allowed_html),
+                'body_code' => wp_kses(isset($env['body_code']) ? $env['body_code'] : '', $allowed_html)
+            );
+        }
+
+        // Ensure we always have at least production environment
+        if (empty($sanitized)) {
+            $sanitized[] = array(
+                'id' => 'production',
+                'name' => 'Production',
+                'head_code' => '',
+                'body_code' => ''
+            );
+        }
+
+        return $sanitized;
     }
 }
