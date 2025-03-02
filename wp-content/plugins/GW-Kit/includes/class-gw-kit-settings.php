@@ -307,6 +307,13 @@ class GW_Kit_Settings {
                     <?php foreach ($environments as $env): ?>
                         <div class="gw-kit-tab-content <?php echo $active_env === $env['id'] ? 'active' : ''; ?>" 
                              data-env="<?php echo esc_attr($env['id']); ?>">
+                            <input type="hidden" 
+                                   name="gw_kit_gtm_environments[<?php echo esc_attr($env['id']); ?>][id]" 
+                                   value="<?php echo esc_attr($env['id']); ?>">
+                            <input type="hidden" 
+                                   name="gw_kit_gtm_environments[<?php echo esc_attr($env['id']); ?>][name]" 
+                                   value="<?php echo esc_attr($env['name']); ?>">
+                            
                             <div class="gw-kit-code-field">
                                 <label><?php _e('GTM Head Code', 'gw-kit'); ?></label>
                                 <textarea name="gw_kit_gtm_environments[<?php echo esc_attr($env['id']); ?>][head_code]" 
