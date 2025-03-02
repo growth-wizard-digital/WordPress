@@ -5,8 +5,6 @@
  * @package GW_Kit
  */
 
-namespace GW_Kit;
-
 if (!defined('ABSPATH')) {
     exit('Direct access denied.');
 }
@@ -14,7 +12,7 @@ if (!defined('ABSPATH')) {
 /**
  * Class Debug
  */
-class Debug {
+class GW_Kit_Debug {
     /**
      * Whether debug mode is enabled
      *

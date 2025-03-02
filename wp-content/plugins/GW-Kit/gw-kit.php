@@ -90,18 +90,26 @@ final class GW_Kit {
      */
     private function init_components() {
         // Initialize debug first
-        GW_Kit_Debug::init();
-        GW_Kit_Debug::info('GW Kit: Plugin initialization started');
+        if (class_exists('GW_Kit_Debug')) {
+            GW_Kit_Debug::init();
+            GW_Kit_Debug::info('GW Kit: Plugin initialization started');
+        }
 
         // Initialize GTM functionality
-        GW_Kit_GTM::init();
+        if (class_exists('GW_Kit_GTM')) {
+            GW_Kit_GTM::init();
+        }
 
         if (is_admin()) {
             // Initialize settings page
-            GW_Kit_Settings::init();
+            if (class_exists('GW_Kit_Settings')) {
+                GW_Kit_Settings::init();
+            }
         }
 
-        GW_Kit_Debug::info('GW Kit: Plugin initialization completed');
+        if (class_exists('GW_Kit_Debug')) {
+            GW_Kit_Debug::info('GW Kit: Plugin initialization completed');
+        }
     }
 
     /**
