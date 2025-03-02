@@ -213,6 +213,49 @@ class GW_Kit_Settings {
                 border: 1px solid #ccc;
                 border-radius: 4px;
             }
+            
+            .gw-kit-tab {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                padding: 8px 12px;
+                border: none;
+                background: none;
+                cursor: pointer;
+            }
+            
+            .gw-kit-tab.active {
+                background: #f0f0f1;
+                border-left: 4px solid #2271b1;
+            }
+            
+            .env-name-input {
+                border: none;
+                background: none;
+                width: 100%;
+                padding: 4px;
+                margin-right: 8px;
+                font-size: 13px;
+            }
+            
+            .env-name-input:focus {
+                border: 1px solid #2271b1;
+                background: white;
+                outline: none;
+                border-radius: 3px;
+            }
+            
+            .new-env-fields {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 8px;
+            }
+            
+            .new-env-fields input {
+                width: 50%;
+                padding: 6px;
+            }
         </style>
         <?php
     }
@@ -281,16 +324,29 @@ class GW_Kit_Settings {
             <div class="gw-kit-tabs-container">
                 <div class="gw-kit-tabs-list">
                     <?php foreach ($environments as $env): ?>
-                        <button type="button" 
-                                class="gw-kit-tab <?php echo $active_env === $env['id'] ? 'active' : ''; ?>" 
-                                data-env="<?php echo esc_attr($env['id']); ?>">
-                            <?php echo esc_html($env['name']); ?>
-                            <span class="dashicons dashicons-trash delete-env hidden"></span>
-                        </button>
+                        <div class="gw-kit-tab-wrapper">
+                            <button type="button" 
+                                    class="gw-kit-tab <?php echo $active_env === $env['id'] ? 'active' : ''; ?>" 
+                                    data-env="<?php echo esc_attr($env['id']); ?>">
+                                <input type="text" 
+                                       name="gw_kit_gtm_environments[<?php echo esc_attr($env['id']); ?>][name]" 
+                                       value="<?php echo esc_attr($env['name']); ?>"
+                                       class="env-name-input"
+                                       placeholder="<?php _e('Environment name', 'gw-kit'); ?>">
+                                <span class="dashicons dashicons-trash delete-env hidden"></span>
+                            </button>
+                        </div>
                     <?php endforeach; ?>
                     
                     <div class="gw-kit-new-env hidden">
-                        <input type="text" class="new-env-name" placeholder="<?php _e('Environment name', 'gw-kit'); ?>">
+                        <div class="new-env-fields">
+                            <input type="text" 
+                                   class="new-env-id" 
+                                   placeholder="<?php _e('Environment ID (e.g. prod, staging)', 'gw-kit'); ?>">
+                            <input type="text" 
+                                   class="new-env-name" 
+                                   placeholder="<?php _e('Display Name (e.g. Production)', 'gw-kit'); ?>">
+                        </div>
                         <div class="new-env-actions">
                             <button type="button" class="button add-env"><?php _e('Add', 'gw-kit'); ?></button>
                             <button type="button" class="button cancel-env"><?php _e('Cancel', 'gw-kit'); ?></button>
@@ -310,9 +366,6 @@ class GW_Kit_Settings {
                             <input type="hidden" 
                                    name="gw_kit_gtm_environments[<?php echo esc_attr($env['id']); ?>][id]" 
                                    value="<?php echo esc_attr($env['id']); ?>">
-                            <input type="hidden" 
-                                   name="gw_kit_gtm_environments[<?php echo esc_attr($env['id']); ?>][name]" 
-                                   value="<?php echo esc_attr($env['name']); ?>">
                             
                             <div class="gw-kit-code-field">
                                 <label><?php _e('GTM Head Code', 'gw-kit'); ?></label>
