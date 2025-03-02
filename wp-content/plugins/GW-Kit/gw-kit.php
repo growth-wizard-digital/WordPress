@@ -27,8 +27,9 @@ define('GW_KIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('GW_KIT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('GW_KIT_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
-// Autoloader
+// Required files
 require_once GW_KIT_PLUGIN_DIR . 'includes/class-gw-kit-autoloader.php';
+require_once GW_KIT_PLUGIN_DIR . 'includes/class-gw-kit-settings.php';
 
 /**
  * Main plugin class
