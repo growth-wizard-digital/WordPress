@@ -88,7 +88,8 @@ final class GW_Kit {
     private function init_components() {
         // Core functionality will be initialized here
         if (is_admin()) {
-            // Admin-specific initialization
+            // Initialize admin functionality
+            \GW_Kit\Admin\Admin::init();
         }
     }
 
