@@ -9,7 +9,10 @@ jQuery(document).ready(function($) {
     const addEnvButton = $('.add-env-button');
     
     // Tab switching
-    tabsList.on('click', '.gw-kit-tab', function() {
+    tabsList.on('click', '.gw-kit-tab', function(e) {
+        // Don't switch tabs if clicking input in manage mode
+        if ($(e.target).is('input')) return;
+
         const envId = $(this).data('env');
         
         // Update active tab
@@ -30,16 +33,30 @@ jQuery(document).ready(function($) {
     manageButton.on('click', function() {
         const isManaging = $(this).hasClass('active');
         $(this).toggleClass('active');
+        container.toggleClass('manage-mode', !isManaging);
         
         if (!isManaging) {
-            tabsList.find('.delete-env').removeClass('hidden');
+            // Enter manage mode
+            $('.env-name').addClass('hidden');
+            $('.env-name-input').removeClass('hidden');
+            $('.delete-env').removeClass('hidden');
             addEnvButton.removeClass('hidden');
             $(this).find('.dashicons').removeClass('dashicons-admin-generic').addClass('dashicons-saved');
         } else {
-            tabsList.find('.delete-env').addClass('hidden');
+            // Exit manage mode
+            $('.env-name').removeClass('hidden');
+            $('.env-name-input').addClass('hidden');
+            $('.delete-env').addClass('hidden');
             addEnvButton.addClass('hidden');
             newEnvContainer.addClass('hidden');
             $(this).find('.dashicons').removeClass('dashicons-saved').addClass('dashicons-admin-generic');
+
+            // Update display names from inputs
+            $('.gw-kit-tab').each(function() {
+                const input = $(this).find('.env-name-input');
+                const display = $(this).find('.env-name');
+                display.text(input.val());
+            });
         }
     });
     
@@ -47,19 +64,19 @@ jQuery(document).ready(function($) {
     addEnvButton.on('click', function() {
         $(this).addClass('hidden');
         newEnvContainer.removeClass('hidden');
-        newEnvContainer.find('input').focus();
+        newEnvContainer.find('.new-env-name').focus();
     });
     
     // Cancel new environment
     newEnvContainer.find('.cancel-env').on('click', function() {
         newEnvContainer.addClass('hidden');
         addEnvButton.removeClass('hidden');
-        newEnvContainer.find('input').val('');
+        newEnvContainer.find('.new-env-name').val('');
     });
     
     // Add new environment
     newEnvContainer.find('.add-env').on('click', function() {
-        const input = newEnvContainer.find('input');
+        const input = newEnvContainer.find('.new-env-name');
         const name = input.val().trim();
         
         if (!name) return;
@@ -68,10 +85,17 @@ jQuery(document).ready(function($) {
         
         // Create new tab
         const tab = $(`
-            <button type="button" class="gw-kit-tab active" data-env="${id}">
-                ${name}
-                <span class="dashicons dashicons-trash delete-env"></span>
-            </button>
+            <div class="gw-kit-tab-wrapper">
+                <button type="button" class="gw-kit-tab active" data-env="${id}">
+                    <span class="env-name hidden">${name}</span>
+                    <input type="text" 
+                           name="gw_kit_gtm_environments[${id}][id]" 
+                           value="${name}" 
+                           class="env-name-input" 
+                           placeholder="Environment name">
+                    <span class="dashicons dashicons-trash delete-env"></span>
+                </button>
+            </div>
         `);
         
         // Create new content
@@ -118,23 +142,20 @@ jQuery(document).ready(function($) {
         const tab = $(this).closest('.gw-kit-tab');
         const envId = tab.data('env');
         
-        if (envId === 'production') {
-            alert('Cannot delete production environment');
-            return;
-        }
-        
         if (!confirm('Are you sure you want to delete this environment?')) {
             return;
         }
         
         const content = tabsContent.find(`.gw-kit-tab-content[data-env="${envId}"]`);
         
-        // If this was the active tab, activate production
+        // If this was the active tab, activate first remaining tab
         if (tab.hasClass('active')) {
-            tabsList.find('[data-env="production"]').click();
+            const firstTab = tabsList.find('.gw-kit-tab').not(tab).first();
+            if (firstTab.length) firstTab.click();
         }
         
-        tab.remove();
+        tab.closest('.gw-kit-tab-wrapper').remove();
         content.remove();
     });
 });
+

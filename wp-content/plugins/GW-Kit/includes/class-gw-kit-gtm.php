@@ -48,6 +48,9 @@ class GW_Kit_GTM {
      * @return string|false Returns code if found, false if not found
      */
     private static function get_environment_code($code_type) {
+        // Don't load GTM code in admin
+        if (is_admin()) return false;
+
         $environments = get_option('gw_kit_gtm_environments', array());
         
         // Get WP environment type
@@ -72,7 +75,7 @@ class GW_Kit_GTM {
         // Look for exact environment match
         $environment_found = false;
         foreach ($environments as $env) {
-            if ($env['id'] === $current_env) {
+            if (strtolower($env['id']) === strtolower($current_env)) {
                 $environment_found = true;
                 $code_key = $code_type . '_code';
                 $code = isset($env[$code_key]) ? $env[$code_key] : '';
