@@ -60,8 +60,16 @@ class GW_Kit_Settings {
         );
 
         // GTM Settings
-        register_setting('gw_kit_gtm_settings', 'gw_kit_gtm_head_code', array(
-            'sanitize_callback' => array(__CLASS__, 'sanitize_gtm_code')
+        register_setting('gw_kit_gtm_settings', 'gw_kit_gtm_environments', array(
+            'sanitize_callback' => array(__CLASS__, 'sanitize_gtm_environments'),
+            'default' => array(
+                array(
+                    'id' => 'production',
+                    'name' => 'Production',
+                    'head_code' => '',
+                    'body_code' => ''
+                )
+            )
         ));
 
         add_settings_section(
@@ -72,9 +80,9 @@ class GW_Kit_Settings {
         );
 
         add_settings_field(
-            'gw_kit_gtm_head_code',
-            __('GTM Head Code', 'gw-kit'),
-            array(__CLASS__, 'render_gtm_code_field'),
+            'gw_kit_gtm_environments',
+            __('GTM Environments', 'gw-kit'),
+            array(__CLASS__, 'render_gtm_environments_field'),
             'gw_kit_gtm_settings',
             'gw_kit_gtm_section'
         );

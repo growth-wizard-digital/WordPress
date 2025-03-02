@@ -76,6 +76,9 @@ final class GW_Kit {
         // Register activation and deactivation hooks
         register_activation_hook(__FILE__, array($this, 'activate'));
         register_deactivation_hook(__FILE__, array($this, 'deactivate'));
+        
+        // Enqueue admin assets
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
     }
 
     /**
@@ -126,6 +129,31 @@ final class GW_Kit {
     public function deactivate() {
         // Deactivation tasks
         flush_rewrite_rules();
+    }
+
+    /**
+     * Enqueue admin assets
+     */
+    public function enqueue_admin_assets() {
+        $screen = get_current_screen();
+        if (!$screen || !strpos($screen->id, 'gw-kit')) {
+            return;
+        }
+
+        wp_enqueue_style(
+            'gw-kit-admin',
+            plugins_url('assets/css/admin.css', __FILE__),
+            array(),
+            filemtime(plugin_dir_path(__FILE__) . 'assets/css/admin.css')
+        );
+
+        wp_enqueue_script(
+            'gw-kit-admin',
+            plugins_url('assets/js/admin.js', __FILE__),
+            array('jquery'),
+            filemtime(plugin_dir_path(__FILE__) . 'assets/js/admin.js'),
+            true
+        );
     }
 }
 
