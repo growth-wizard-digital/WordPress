@@ -124,20 +124,26 @@ class GW_Kit_Debug {
      * Enqueue debug scripts
      */
     /**
-     * Get plugin root directory
-     */
-    private static function get_plugin_root() {
-        return dirname(dirname(__DIR__));
-    }
-
-    /**
      * Enqueue debug scripts
      */
     public static function enqueue_debug_scripts() {
+        // Only load if debugging is enabled
         if (!self::$debug_enabled || is_admin()) return;
 
-        // Get the correct path to debug.js
-        $debug_js_path = plugins_url('assets/js/debug.js', self::get_plugin_root() . '/gw-kit.php');
+        // Get plugin directory URL
+        $plugin_url = plugin_dir_url(dirname(__FILE__));
+        $debug_js_path = $plugin_url . 'assets/js/debug.js';
+
+        // Get absolute path to debug.js
+        $debug_js_file = dirname(dirname(__FILE__)) . '/assets/js/debug.js';
+
+        // Check if file exists before enqueueing
+        if (!file_exists($debug_js_file)) {
+            if (class_exists('GW_Kit_Debug')) {
+                GW_Kit_Debug::error(sprintf('Debug script not found at: %s', $debug_js_file));
+            }
+            return;
+        }
 
         wp_enqueue_script(
             'gw-kit-debug',
@@ -151,7 +157,8 @@ class GW_Kit_Debug {
             'currentEnv' => defined('WP_ENVIRONMENT_TYPE') ? WP_ENVIRONMENT_TYPE : 'undefined',
             'environments' => array_column(get_option('gw_kit_gtm_environments', array()), 'id'),
             'wpDebug' => defined('WP_DEBUG') && WP_DEBUG,
-            'isAdmin' => is_admin()
+            'isAdmin' => is_admin(),
+            'gtmEnabled' => get_option('gw_kit_gtm_enabled', false)
         );
 
         wp_localize_script('gw-kit-debug', 'gwKitDebug', $debug_data);
