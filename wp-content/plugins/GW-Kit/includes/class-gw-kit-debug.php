@@ -123,11 +123,26 @@ class GW_Kit_Debug {
     /**
      * Enqueue debug scripts
      */
+    /**
+     * Get plugin root directory
+     */
+    private static function get_plugin_root() {
+        return dirname(dirname(__DIR__));
+    }
+
+    /**
+     * Enqueue debug scripts
+     */
     public static function enqueue_debug_scripts() {
+        if (!self::$debug_enabled || is_admin()) return;
+
+        // Get the correct path to debug.js
+        $debug_js_path = plugins_url('assets/js/debug.js', self::get_plugin_root() . '/gw-kit.php');
+
         wp_enqueue_script(
             'gw-kit-debug',
-            plugins_url('assets/js/debug.js', dirname(__FILE__)),
-            array(),
+            $debug_js_path,
+            array('jquery'),
             '1.0.0',
             true
         );
@@ -146,16 +161,7 @@ class GW_Kit_Debug {
      * Render debug output in the frontend
      */
     public static function render_debug_output() {
-        if (!self::$debug_enabled || is_admin()) return;
-
-        // Add inline script to output debug info
-        echo "<script>
-            console.group('GW Kit Debug');
-            console.log('Current Environment:', gwKitDebug.currentEnv);
-            console.log('Available Environments:', gwKitDebug.environments);
-            console.log('WP_DEBUG:', gwKitDebug.wpDebug ? 'enabled' : 'disabled');
-            console.log('Is Admin:', gwKitDebug.isAdmin);
-            console.groupEnd();
-        </script>";
+        // No need for additional script tag as debug.js will handle the console output
+        return;
     }
 }
