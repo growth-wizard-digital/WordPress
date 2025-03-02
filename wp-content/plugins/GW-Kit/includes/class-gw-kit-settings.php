@@ -32,7 +32,7 @@ class GW_Kit_Settings {
             'manage_options',
             'gw-kit-settings',
             array(__CLASS__, 'render_settings_page'),
-            'dashicons-magic',
+            'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path fill="white" d="M234.7 42.7L197 56.8c-3 1.1-5 4-5 7.2s2 6.1 5 7.2l37.7 14.1L248.8 123c1.1 3 4 5 7.2 5s6.1-2 7.2-5l14.1-37.7L315 71.2c3-1.1 5-4 5-7.2s-2-6.1-5-7.2L277.3 42.7 263.2 5c-1.1-3-4-5-7.2-5s-6.1 2-7.2 5L234.7 42.7zM46.1 395.4c-18.7 18.7-18.7 49.1 0 67.9l34.6 34.6c18.7 18.7 49.1 18.7 67.9 0L529.9 116.5c18.7-18.7 18.7-49.1 0-67.9L495.3 14.1c-18.7-18.7-49.1-18.7-67.9 0L46.1 395.4zM484.6 82.6l-105 105-23.3-23.3 105-105 23.3 23.3zM7.5 117.2C3 118.9 0 123.2 0 128s3 9.1 7.5 10.8L64 160l21.2 56.5c1.7 4.5 6 7.5 10.8 7.5s9.1-3 10.8-7.5L128 160l56.5-21.2c4.5-1.7 7.5-6 7.5-10.8s-3-9.1-7.5-10.8L128 96 106.8 39.5C105.1 35 100.8 32 96 32s-9.1 3-10.8 7.5L64 96 7.5 117.2zm352 256c-4.5 1.7-7.5 6-7.5 10.8s3 9.1 7.5 10.8L416 416l21.2 56.5c1.7 4.5 6 7.5 10.8 7.5s9.1-3 10.8-7.5L480 416l56.5-21.2c4.5-1.7 7.5-6 7.5-10.8s-3-9.1-7.5-10.8L480 352l-21.2-56.5c-1.7-4.5-6-7.5-10.8-7.5s-9.1 3-10.8 7.5L416 352l-56.5 21.2z"/></svg>'),
             30
         );
     }
@@ -41,7 +41,11 @@ class GW_Kit_Settings {
      * Register settings
      */
     public static function register_settings() {
+        // General Settings
         register_setting('gw_kit_settings', 'gw_kit_gtm_enabled');
+        register_setting('gw_kit_settings', 'gw_kit_gtm_head_code', array(
+            'sanitize_callback' => array(__CLASS__, 'sanitize_gtm_code')
+        ));
 
         add_settings_section(
             'gw_kit_main_section',
@@ -56,6 +60,22 @@ class GW_Kit_Settings {
             array(__CLASS__, 'render_gtm_toggle'),
             'gw_kit_settings',
             'gw_kit_main_section'
+        );
+
+        // GTM Settings
+        add_settings_section(
+            'gw_kit_gtm_section',
+            __('GTM Settings', 'gw-kit'),
+            null,
+            'gw_kit_gtm_settings'
+        );
+
+        add_settings_field(
+            'gw_kit_gtm_head_code',
+            __('GTM Head Code', 'gw-kit'),
+            array(__CLASS__, 'render_gtm_code_field'),
+            'gw_kit_gtm_settings',
+            'gw_kit_gtm_section'
         );
     }
 
@@ -122,8 +142,13 @@ class GW_Kit_Settings {
                 </form>
             <?php elseif ($active_tab === 'gtm' && $gtm_enabled): ?>
                 <div class="gtm-settings">
-                    <h2><?php _e('Google Tag Manager Settings', 'gw-kit'); ?></h2>
-                    <p><?php _e('GTM settings will be added here.', 'gw-kit'); ?></p>
+                    <form method="post" action="options.php">
+                        <?php
+                        settings_fields('gw_kit_gtm_settings');
+                        do_settings_sections('gw_kit_gtm_settings');
+                        submit_button();
+                        ?>
+                    </form>
                 </div>
             <?php endif; ?>
         </div>
@@ -168,7 +193,64 @@ class GW_Kit_Settings {
             .gw-kit-toggle input:checked + .gw-kit-toggle-slider:before {
                 transform: translateX(26px);
             }
+            .gw-kit-code-editor {
+                width: 100%;
+                min-height: 150px;
+                font-family: monospace;
+                white-space: pre;
+                overflow: auto;
+                padding: 10px;
+                background: #f5f5f5;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
         </style>
         <?php
+    }
+
+    /**
+     * Render GTM code field
+     */
+    public static function render_gtm_code_field() {
+        $code = get_option('gw_kit_gtm_head_code', '');
+        ?>
+        <textarea name="gw_kit_gtm_head_code" 
+                  class="gw-kit-code-editor" 
+                  placeholder="<?php _e('Paste your GTM head code here...', 'gw-kit'); ?>"><?php echo esc_textarea($code); ?></textarea>
+        <p class="description"><?php _e('Paste your Google Tag Manager code here. It should start with <script> and contain your GTM-XXXXXX ID.', 'gw-kit'); ?></p>
+        <?php
+    }
+
+    /**
+     * Sanitize GTM code
+     *
+     * @param string $input The input to sanitize
+     * @return string
+     */
+    public static function sanitize_gtm_code($input) {
+        if (empty($input)) {
+            return '';
+        }
+
+        // Basic XSS protection
+        $input = wp_kses($input, array(
+            'script' => array(
+                'async' => array(),
+                'src' => array()
+            )
+        ));
+
+        // Verify it contains GTM code
+        if (strpos($input, 'googletagmanager.com') === false || strpos($input, 'GTM-') === false) {
+            add_settings_error(
+                'gw_kit_gtm_head_code',
+                'invalid_gtm_code',
+                __('Please enter a valid Google Tag Manager code containing your GTM-XXXXXX ID.', 'gw-kit'),
+                'error'
+            );
+            return '';
+        }
+
+        return $input;
     }
 }

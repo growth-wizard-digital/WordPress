@@ -30,11 +30,27 @@ class GW_Kit_GTM {
             return;
         }
 
-        // Add script to footer
+        // Add GTM code to head
+        add_action('wp_head', array(__CLASS__, 'output_gtm_head_code'), 1);
+        
+        // Add environment logging to footer
         add_action('wp_footer', array(__CLASS__, 'add_environment_script'));
         
         if (class_exists('GW_Kit_Debug')) {
             GW_Kit_Debug::info('GTM Module: Initialized successfully');
+        }
+    }
+
+    /**
+     * Output GTM code in head
+     */
+    public static function output_gtm_head_code() {
+        $gtm_code = get_option('gw_kit_gtm_head_code', '');
+        if (!empty($gtm_code)) {
+            if (class_exists('GW_Kit_Debug')) {
+                GW_Kit_Debug::info('GTM Module: Outputting GTM code in head');
+            }
+            echo $gtm_code; // Already sanitized during save
         }
     }
 
