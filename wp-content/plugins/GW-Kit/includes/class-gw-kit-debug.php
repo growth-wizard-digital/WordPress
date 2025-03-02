@@ -50,6 +50,7 @@ class GW_Kit_Debug {
         // Add frontend debug output if WP_DEBUG is enabled
         if (self::$debug_enabled && !is_admin()) {
             add_action('wp_footer', array(__CLASS__, 'render_debug_output'));
+            add_action('wp_enqueue_scripts', array(__CLASS__, 'enqueue_debug_scripts'));
         }
     }
 
@@ -120,20 +121,41 @@ class GW_Kit_Debug {
     }
 
     /**
+     * Enqueue debug scripts
+     */
+    public static function enqueue_debug_scripts() {
+        wp_enqueue_script(
+            'gw-kit-debug',
+            plugins_url('assets/js/debug.js', dirname(__FILE__)),
+            array(),
+            '1.0.0',
+            true
+        );
+
+        $debug_data = array(
+            'currentEnv' => defined('WP_ENVIRONMENT_TYPE') ? WP_ENVIRONMENT_TYPE : 'undefined',
+            'environments' => array_column(get_option('gw_kit_gtm_environments', array()), 'id'),
+            'wpDebug' => defined('WP_DEBUG') && WP_DEBUG,
+            'isAdmin' => is_admin()
+        );
+
+        wp_localize_script('gw-kit-debug', 'gwKitDebug', $debug_data);
+    }
+
+    /**
      * Render debug output in the frontend
      */
     public static function render_debug_output() {
         if (!self::$debug_enabled || is_admin()) return;
 
-        $current_env = defined('WP_ENVIRONMENT_TYPE') ? WP_ENVIRONMENT_TYPE : 'undefined';
-        $environments = get_option('gw_kit_gtm_environments', array());
-        $env_list = empty($environments) ? 'none' : implode(', ', array_column($environments, 'id'));
-
-        echo '<div class="gw-kit-debug" style="position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: #fff; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; z-index: 9999;">';
-        echo '<strong>GW Kit Debug</strong><br>';
-        echo sprintf('Current Environment: %s<br>', esc_html($current_env));
-        echo sprintf('Available Environments: %s<br>', esc_html($env_list));
-        echo sprintf('WP_DEBUG: %s<br>', defined('WP_DEBUG') && WP_DEBUG ? 'enabled' : 'disabled');
-        echo '</div>';
+        // Add inline script to output debug info
+        echo "<script>
+            console.group('GW Kit Debug');
+            console.log('Current Environment:', gwKitDebug.currentEnv);
+            console.log('Available Environments:', gwKitDebug.environments);
+            console.log('WP_DEBUG:', gwKitDebug.wpDebug ? 'enabled' : 'disabled');
+            console.log('Is Admin:', gwKitDebug.isAdmin);
+            console.groupEnd();
+        </script>";
     }
 }
