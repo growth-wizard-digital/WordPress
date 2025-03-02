@@ -43,14 +43,11 @@ class GW_Kit_Settings {
     public static function register_settings() {
         // General Settings
         register_setting('gw_kit_settings', 'gw_kit_gtm_enabled');
-        register_setting('gw_kit_settings', 'gw_kit_gtm_head_code', array(
-            'sanitize_callback' => array(__CLASS__, 'sanitize_gtm_code')
-        ));
 
         add_settings_section(
             'gw_kit_main_section',
             __('General Settings', 'gw-kit'),
-            null,
+            array(__CLASS__, 'render_main_section'),
             'gw_kit_settings'
         );
 
@@ -63,10 +60,14 @@ class GW_Kit_Settings {
         );
 
         // GTM Settings
+        register_setting('gw_kit_gtm_settings', 'gw_kit_gtm_head_code', array(
+            'sanitize_callback' => array(__CLASS__, 'sanitize_gtm_code')
+        ));
+
         add_settings_section(
             'gw_kit_gtm_section',
             __('GTM Settings', 'gw-kit'),
-            null,
+            array(__CLASS__, 'render_gtm_section'),
             'gw_kit_gtm_settings'
         );
 
@@ -217,8 +218,32 @@ class GW_Kit_Settings {
         <textarea name="gw_kit_gtm_head_code" 
                   class="gw-kit-code-editor" 
                   placeholder="<?php _e('Paste your GTM head code here...', 'gw-kit'); ?>"><?php echo esc_textarea($code); ?></textarea>
-        <p class="description"><?php _e('Paste your Google Tag Manager code here. It should start with <script> and contain your GTM-XXXXXX ID.', 'gw-kit'); ?></p>
+        <p class="description"><?php _e('Paste your Google Tag Manager code here (including the script tags).', 'gw-kit'); ?></p>
         <?php
+    }
+
+    /**
+     * Sanitize GTM code
+     *
+     * @param string $input The input to sanitize
+     * @return string
+     */
+    /**
+     * Render main settings section
+     *
+     * @param array $args Arguments passed to the callback
+     */
+    public static function render_main_section($args) {
+        echo '<p>' . esc_html__('Configure general settings for the Magic Kit plugin.', 'gw-kit') . '</p>';
+    }
+
+    /**
+     * Render GTM settings section
+     *
+     * @param array $args Arguments passed to the callback
+     */
+    public static function render_gtm_section($args) {
+        echo '<p>' . esc_html__('Configure your Google Tag Manager integration.', 'gw-kit') . '</p>';
     }
 
     /**
@@ -232,24 +257,20 @@ class GW_Kit_Settings {
             return '';
         }
 
-        // Basic XSS protection
+        // Basic XSS protection while allowing script tags
         $input = wp_kses($input, array(
             'script' => array(
                 'async' => array(),
                 'src' => array()
+            ),
+            'noscript' => array(),
+            'iframe' => array(
+                'src' => array(),
+                'height' => array(),
+                'width' => array(),
+                'style' => array()
             )
         ));
-
-        // Verify it contains GTM code
-        if (strpos($input, 'googletagmanager.com') === false || strpos($input, 'GTM-') === false) {
-            add_settings_error(
-                'gw_kit_gtm_head_code',
-                'invalid_gtm_code',
-                __('Please enter a valid Google Tag Manager code containing your GTM-XXXXXX ID.', 'gw-kit'),
-                'error'
-            );
-            return '';
-        }
 
         return $input;
     }

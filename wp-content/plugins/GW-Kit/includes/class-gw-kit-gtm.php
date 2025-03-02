@@ -50,7 +50,7 @@ class GW_Kit_GTM {
             if (class_exists('GW_Kit_Debug')) {
                 GW_Kit_Debug::info('GTM Module: Outputting GTM code in head');
             }
-            echo $gtm_code; // Already sanitized during save
+            echo $gtm_code; // Already sanitized during save, includes script tags
         }
     }
 
