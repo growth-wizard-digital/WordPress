@@ -255,6 +255,80 @@ class GW_Kit_Settings {
     }
 
     /**
+     * Render GTM environments field
+     */
+    public static function render_gtm_environments_field() {
+        $environments = get_option('gw_kit_gtm_environments', array(
+            array(
+                'id' => 'production',
+                'name' => 'Production',
+                'head_code' => '',
+                'body_code' => ''
+            )
+        ));
+        
+        $active_env = isset($_GET['env']) ? sanitize_text_field($_GET['env']) : 'production';
+        ?>
+        <div class="gw-kit-vertical-tabs">
+            <div class="gw-kit-tabs-header">
+                <h3><?php _e('Environments', 'gw-kit'); ?></h3>
+                <button type="button" class="button" id="gw-kit-manage-envs">
+                    <span class="dashicons dashicons-admin-generic"></span>
+                    <?php _e('Manage', 'gw-kit'); ?>
+                </button>
+            </div>
+            
+            <div class="gw-kit-tabs-container">
+                <div class="gw-kit-tabs-list">
+                    <?php foreach ($environments as $env): ?>
+                        <button type="button" 
+                                class="gw-kit-tab <?php echo $active_env === $env['id'] ? 'active' : ''; ?>" 
+                                data-env="<?php echo esc_attr($env['id']); ?>">
+                            <?php echo esc_html($env['name']); ?>
+                            <span class="dashicons dashicons-trash delete-env hidden"></span>
+                        </button>
+                    <?php endforeach; ?>
+                    
+                    <div class="gw-kit-new-env hidden">
+                        <input type="text" class="new-env-name" placeholder="<?php _e('Environment name', 'gw-kit'); ?>">
+                        <div class="new-env-actions">
+                            <button type="button" class="button add-env"><?php _e('Add', 'gw-kit'); ?></button>
+                            <button type="button" class="button cancel-env"><?php _e('Cancel', 'gw-kit'); ?></button>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="button add-env-button">
+                        <span class="dashicons dashicons-plus"></span>
+                        <?php _e('Add Environment', 'gw-kit'); ?>
+                    </button>
+                </div>
+                
+                <div class="gw-kit-tabs-content">
+                    <?php foreach ($environments as $env): ?>
+                        <div class="gw-kit-tab-content <?php echo $active_env === $env['id'] ? 'active' : ''; ?>" 
+                             data-env="<?php echo esc_attr($env['id']); ?>">
+                            <div class="gw-kit-code-field">
+                                <label><?php _e('GTM Head Code', 'gw-kit'); ?></label>
+                                <textarea name="gw_kit_gtm_environments[<?php echo esc_attr($env['id']); ?>][head_code]" 
+                                          class="gw-kit-code-editor" 
+                                          placeholder="<?php _e('Paste your GTM head code here...', 'gw-kit'); ?>"><?php echo esc_textarea($env['head_code']); ?></textarea>
+                            </div>
+                            
+                            <div class="gw-kit-code-field">
+                                <label><?php _e('GTM Body Code', 'gw-kit'); ?></label>
+                                <textarea name="gw_kit_gtm_environments[<?php echo esc_attr($env['id']); ?>][body_code]" 
+                                          class="gw-kit-code-editor" 
+                                          placeholder="<?php _e('Paste your GTM body code here...', 'gw-kit'); ?>"><?php echo esc_textarea($env['body_code']); ?></textarea>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+
+    /**
      * Sanitize GTM code
      *
      * @param string $input The input to sanitize
