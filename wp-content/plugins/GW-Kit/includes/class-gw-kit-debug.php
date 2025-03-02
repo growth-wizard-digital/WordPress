@@ -46,6 +46,11 @@ class GW_Kit_Debug {
         }
         
         self::$log_file = $log_dir . '/debug.log';
+
+        // Add frontend debug output if WP_DEBUG is enabled
+        if (self::$debug_enabled && !is_admin()) {
+            add_action('wp_footer', array(__CLASS__, 'render_debug_output'));
+        }
     }
 
     /**
@@ -112,5 +117,23 @@ class GW_Kit_Debug {
      */
     public static function error($message) {
         self::log($message, 'error');
+    }
+
+    /**
+     * Render debug output in the frontend
+     */
+    public static function render_debug_output() {
+        if (!self::$debug_enabled || is_admin()) return;
+
+        $current_env = defined('WP_ENVIRONMENT_TYPE') ? WP_ENVIRONMENT_TYPE : 'undefined';
+        $environments = get_option('gw_kit_gtm_environments', array());
+        $env_list = empty($environments) ? 'none' : implode(', ', array_column($environments, 'id'));
+
+        echo '<div class="gw-kit-debug" style="position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: #fff; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; z-index: 9999;">';
+        echo '<strong>GW Kit Debug</strong><br>';
+        echo sprintf('Current Environment: %s<br>', esc_html($current_env));
+        echo sprintf('Available Environments: %s<br>', esc_html($env_list));
+        echo sprintf('WP_DEBUG: %s<br>', defined('WP_DEBUG') && WP_DEBUG ? 'enabled' : 'disabled');
+        echo '</div>';
     }
 }

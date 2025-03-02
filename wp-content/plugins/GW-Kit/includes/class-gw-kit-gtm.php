@@ -48,10 +48,33 @@ class GW_Kit_GTM {
      * @return string|false Returns code if found, false if not found
      */
     private static function get_environment_code($code_type) {
+        // Always log environment info
+        if (class_exists('GW_Kit_Debug')) {
+            GW_Kit_Debug::info(sprintf(
+                'GTM Module: Checking environment. WP_ENVIRONMENT_TYPE: %s, Code Type: %s, Is Admin: %s',
+                defined('WP_ENVIRONMENT_TYPE') ? WP_ENVIRONMENT_TYPE : 'undefined',
+                $code_type,
+                is_admin() ? 'yes' : 'no'
+            ));
+        }
+
         // Don't load GTM code in admin
-        if (is_admin()) return false;
+        if (is_admin()) {
+            if (class_exists('GW_Kit_Debug')) {
+                GW_Kit_Debug::info('GTM Module: Skipping GTM code in admin area');
+            }
+            return false;
+        }
 
         $environments = get_option('gw_kit_gtm_environments', array());
+        
+        // Log available environments
+        if (class_exists('GW_Kit_Debug')) {
+            GW_Kit_Debug::info(sprintf(
+                'GTM Module: Available environments: %s',
+                empty($environments) ? 'none' : print_r(array_column($environments, 'id'), true)
+            ));
+        }
         
         // Get WP environment type
         $current_env = defined('WP_ENVIRONMENT_TYPE') ? WP_ENVIRONMENT_TYPE : false;
@@ -75,7 +98,18 @@ class GW_Kit_GTM {
         // Look for exact environment match
         $environment_found = false;
         foreach ($environments as $env) {
-            if (strtolower($env['id']) === strtolower($current_env)) {
+            $env_id = strtolower($env['id']);
+            $current_env_lower = strtolower($current_env);
+            
+            if (class_exists('GW_Kit_Debug')) {
+                GW_Kit_Debug::debug(sprintf(
+                    'GTM Module: Comparing environment IDs - Current: %s, Config: %s',
+                    $current_env_lower,
+                    $env_id
+                ));
+            }
+            
+            if ($env_id === $current_env_lower) {
                 $environment_found = true;
                 $code_key = $code_type . '_code';
                 $code = isset($env[$code_key]) ? $env[$code_key] : '';
