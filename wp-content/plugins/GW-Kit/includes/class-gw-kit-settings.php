@@ -1,29 +1,25 @@
 <?php
 /**
- * Admin functionality for GW Kit
+ * Settings page functionality for GW Kit
  *
  * @package GW_Kit
  */
-
-namespace GW_Kit\Admin;
-
-use GW_Kit\Debug;
 
 if (!defined('ABSPATH')) {
     exit('Direct access denied.');
 }
 
 /**
- * Class Admin
+ * Class GW_Kit_Settings
  */
-class Admin {
+class GW_Kit_Settings {
     /**
-     * Initialize admin functionality
+     * Initialize settings
      */
     public static function init() {
         add_action('admin_menu', array(__CLASS__, 'add_admin_menu'));
         add_action('admin_init', array(__CLASS__, 'register_settings'));
-        add_filter('plugin_action_links_' . GW_KIT_PLUGIN_BASENAME, array(__CLASS__, 'add_settings_link'));
+        add_filter('plugin_action_links_' . plugin_basename(GW_KIT_PLUGIN_DIR . 'gw-kit.php'), array(__CLASS__, 'add_settings_link'));
     }
 
     /**
