@@ -30,6 +30,8 @@ define('GW_KIT_PLUGIN_BASENAME', plugin_basename(__FILE__));
 // Required files
 require_once GW_KIT_PLUGIN_DIR . 'includes/class-gw-kit-autoloader.php';
 require_once GW_KIT_PLUGIN_DIR . 'includes/class-gw-kit-settings.php';
+require_once GW_KIT_PLUGIN_DIR . 'includes/class-gw-kit-debug.php';
+require_once GW_KIT_PLUGIN_DIR . 'includes/class-gw-kit-gtm.php';
 
 /**
  * Main plugin class
@@ -87,11 +89,19 @@ final class GW_Kit {
      * Initialize plugin components
      */
     private function init_components() {
-        // Core functionality will be initialized here
+        // Initialize debug first
+        GW_Kit_Debug::init();
+        GW_Kit_Debug::info('GW Kit: Plugin initialization started');
+
+        // Initialize GTM functionality
+        GW_Kit_GTM::init();
+
         if (is_admin()) {
             // Initialize settings page
             GW_Kit_Settings::init();
         }
+
+        GW_Kit_Debug::info('GW Kit: Plugin initialization completed');
     }
 
     /**
